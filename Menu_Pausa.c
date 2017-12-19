@@ -7,11 +7,16 @@
 //Defines internos necesarios
 #define HEIGHT_DIS 400
 #define WIDTH_DIS 400
-#define WIDTH_SYMS 100
+#define WIDTH_SYMS_O 100
+#define WIDTH_SYMS 50
+#define WIDTH_SYMS_R 50
+#define HEIGHT_SYMS_O 50
 #define HEIGHT_SYMS 100
+#define HEIGHT_SYMS_R 50
 #define COL1 75
 #define FINCOL1 (COL1 + WIDTH_SYMS)
 #define COL2 (FINCOL1 + 50)
+#define FINCOL2_O (COL2 + WIDTH_SYMS_O)
 #define FINCOL2 (COL2 + WIDTH_SYMS)
 
 //Para trabajar en el arreglo
@@ -42,8 +47,16 @@ int main(void)
 	ALLEGRO_BITMAP * tetris;                //titulo
 	ALLEGRO_BITMAP * max_score;             //boton max score
 	ALLEGRO_BITMAP * rules;                 //boton rules
+	ALLEGRO_BITMAP * on;                 //boton epilepsia on
+	ALLEGRO_BITMAP * off;                 //boton epilepsia off
+	ALLEGRO_BITMAP * uno;                 //boton dif 1
+	ALLEGRO_BITMAP * dos;                 //boton dif 2
+	ALLEGRO_BITMAP *tres;                 //boton dif 3
         ALLEGRO_EVENT_QUEUE  * event_queue = NULL;   //creo cola de eventos
+        
         char close_display = false;             //Variable para ver si cerrar el display
+        char epilepsia = false; //Por default empieza apagado
+        char dificultad = 1; //Por default empieza en facil (1)
      //Inicializo Allegro
 	if( !al_init() ) //lo mismo que igual a 0
 	{
@@ -90,10 +103,10 @@ int main(void)
 		return -1;
 	}
         
-        //Cargo bitmaps
+       //Cargo bitmaps
         
         //Cargo fondo
-	else if( !(display_background = al_load_bitmap("fondo2.jpg")) )
+	else if( !(display_background = al_load_bitmap("Setting.jpg")) )
 	{
 		fprintf(stderr,"Unable to load background\n"); 
 		al_uninstall_system();
@@ -101,8 +114,67 @@ int main(void)
                 al_destroy_event_queue(event_queue);
 		return -1;
 	}
+        //Cargo off
+        else if( !(off = al_load_bitmap("off.jpg")) )
+	{
+		fprintf(stderr,"Unable to load background\n"); 
+		al_destroy_bitmap(display_background);
+		al_shutdown_image_addon();
+                al_destroy_event_queue(event_queue);
+		return -1;
+	}
         
-        //cargo boton play
+        //Cargo on
+        else if( !(on = al_load_bitmap("on.jpg")) )
+	{
+		fprintf(stderr,"Unable to load background\n"); 
+		al_destroy_bitmap(display_background);
+		al_destroy_bitmap(off);
+		al_shutdown_image_addon();
+                al_destroy_event_queue(event_queue);
+		return -1;
+	}
+        
+        //Cargo uno
+        else if( !(uno = al_load_bitmap("uno.jpg")) )
+	{
+		fprintf(stderr,"Unable to load uno\n"); 
+		al_destroy_bitmap(display_background);
+		al_destroy_bitmap(off);
+		al_destroy_bitmap(on);
+		al_shutdown_image_addon();
+                al_destroy_event_queue(event_queue);
+		return -1;
+	}
+        
+        //Cargo  dos
+        else if( !(dos = al_load_bitmap("dos.jpg")) )
+	{
+		fprintf(stderr,"Unable to load dos\n"); 
+		al_destroy_bitmap(display_background);
+		al_destroy_bitmap(off);
+		al_destroy_bitmap(uno);
+		al_destroy_bitmap(on);
+		al_shutdown_image_addon();
+                al_destroy_event_queue(event_queue);
+		return -1;
+	}
+        
+        //Cargo tres
+        else if( !(tres = al_load_bitmap("tres.jpg")) )
+	{
+		fprintf(stderr,"Unable to load uno\n"); 
+		al_destroy_bitmap(display_background);
+		al_destroy_bitmap(off);
+		al_destroy_bitmap(on);
+		al_destroy_bitmap(uno);
+		al_destroy_bitmap(dos);
+		al_shutdown_image_addon();
+                al_destroy_event_queue(event_queue);
+		return -1;
+	}
+        
+    /*    //cargo boton play
 	else if( !(play = al_load_bitmap("play.png")) ) 
 	{
 		fprintf(stderr,"Unable to load play\n"); 
@@ -122,20 +194,22 @@ int main(void)
 		al_shutdown_image_addon();
                 al_destroy_event_queue(event_queue);
 		return -1;
-	}
+	}*/
         //cargo restart
         else if( !(restart = al_load_bitmap("restart.png")) ) 
 	{
 		fprintf(stderr,"Unable to load restart\n"); 
                 al_destroy_bitmap(display_background);
-                al_destroy_bitmap(play);
-                al_destroy_bitmap(quit);
-		al_uninstall_system();
+                al_destroy_bitmap(uno);
+                al_destroy_bitmap(dos);
+                al_destroy_bitmap(tres);
+                al_destroy_bitmap(on);
+                al_destroy_bitmap(off);
 		al_shutdown_image_addon();
                 al_destroy_event_queue(event_queue);
 		return -1;
 	}
-        //Cargo max_score
+ /*       //Cargo max_score
         else if( !(max_score = al_load_bitmap("maxscore.png")) ) 
 	{
 		fprintf(stderr,"Unable to load max score\n"); 
@@ -210,21 +284,19 @@ int main(void)
 		al_shutdown_image_addon();
                 al_destroy_event_queue(event_queue);
 		return -1;
-	}
+	}*/
         
         //Inicializo display
 	else if( !(display = al_create_display(WIDTH_DIS,HEIGHT_DIS)) )
 	{
 		fprintf(stderr,"Unable to create display\n"); 
 		al_destroy_bitmap(display_background);
-                al_destroy_bitmap(rules);
-                al_destroy_bitmap(play);
-                al_destroy_bitmap(quit);
-                al_destroy_bitmap(tetris);
+                al_destroy_bitmap(on);
+                al_destroy_bitmap(off);
+                al_destroy_bitmap(uno);
                 al_destroy_bitmap(restart);
-                al_destroy_bitmap(max_score);
-                al_destroy_bitmap(settings);
-                al_destroy_bitmap(menu);
+                al_destroy_bitmap(dos);
+                al_destroy_bitmap(tres);
 		al_uninstall_system();
 		al_shutdown_image_addon();
                 al_destroy_event_queue(event_queue);
@@ -240,12 +312,37 @@ int main(void)
 	//Dibujo en el display
         
         al_clear_to_color(al_map_rgb(0,0,0));   //pongo el fondo real en negro
+        
 	//Agrego una imagen para hacer el fondo del menu
         al_draw_scaled_bitmap(display_background,
 						0,0, al_get_bitmap_width(display_background),al_get_bitmap_height(display_background), //imagen
 						0,0,al_get_display_width(display),al_get_display_height(display), //a que tamaño queres que se dibuje la imagen
 						0); //SIn flags podrian usar ALLEGRO_FLIP_HORIZONTAL o ALLEGRO_FLIP_VERTICAL muy utiles
-        //Agrego tetris
+        
+        //Agrego off por default para epilepsia
+        //Agrego boton off
+        al_draw_scaled_bitmap(off,
+            0,0, al_get_bitmap_width(off),al_get_bitmap_height(off),
+            COL2,HEIGHT_SYMS_O*6 +10 ,WIDTH_SYMS_O,HEIGHT_SYMS_O,  // POSICION. tamano que quiero que se imprima la imagen
+            0); //rotacion*/
+        
+        //Agrego boton uno
+        al_draw_scaled_bitmap(uno,
+            0,0, al_get_bitmap_width(uno),al_get_bitmap_height(uno),
+            COL2,HEIGHT_SYMS*2 -20 ,WIDTH_SYMS,HEIGHT_SYMS,  // POSICION. tamano que quiero que se imprima la imagen
+            0); //rotacion*/
+        //Agrego boton DOS
+        al_draw_scaled_bitmap(dos,
+            0,0, al_get_bitmap_width(dos),al_get_bitmap_height(dos),
+            FINCOL2 + 20,HEIGHT_SYMS*2 -20 ,WIDTH_SYMS,HEIGHT_SYMS,  // POSICION. tamano que quiero que se imprima la imagen
+            0); //rotacion*/
+        //Agrego boton tres
+        al_draw_scaled_bitmap(tres,
+            0,0, al_get_bitmap_width(tres),al_get_bitmap_height(tres),
+            FINCOL2 + 2*22 + WIDTH_SYMS,HEIGHT_SYMS*2 -20 ,WIDTH_SYMS,HEIGHT_SYMS,  // POSICION. tamano que quiero que se imprima la imagen
+            0); //rotacion*/
+        
+/*       //Agrego tetris
         al_draw_scaled_bitmap(tetris,
 						0,0, al_get_bitmap_width(tetris),al_get_bitmap_height(tetris), //imagen
 						100,0,200,100, //a que tamaño queres que se dibuje la imagen
@@ -254,24 +351,24 @@ int main(void)
         al_draw_scaled_bitmap(play,
             0,0, al_get_bitmap_width(play),al_get_bitmap_height(play),
             COL1,HEIGHT_SYMS ,WIDTH_SYMS,HEIGHT_SYMS,  // POSICION. tamano que quiero que se imprima la imagen
-            0); //rotacion
-        //Agrego boton restart
+            0); //rotacion*/
+ /*      //Agrego boton restart
         al_draw_scaled_bitmap(restart,
             0,0, al_get_bitmap_width(restart),al_get_bitmap_height(restart),
             COL2,HEIGHT_SYMS ,WIDTH_SYMS,HEIGHT_SYMS,  // POSICION. tamano que quiero que se imprima la imagen
-            0); //rotacion
+            0); //rotacion*/
 
-        //Agrego boton QUIT
-        al_draw_scaled_bitmap(quit,
-            0,0, al_get_bitmap_width(quit),al_get_bitmap_height(quit),
-            COL1,HEIGHT_SYMS*2 + 50 ,WIDTH_SYMS,HEIGHT_SYMS,  // POSICION. tamano que quiero que se imprima la imagen
+        //Agrego boton volver al menu ppal
+        al_draw_scaled_bitmap(restart,
+            0,0, al_get_bitmap_width(restart),al_get_bitmap_height(restart),
+            0,0,WIDTH_SYMS_R,HEIGHT_SYMS_R,  // POSICION. tamano que quiero que se imprima la imagen
             0); //rotacion
         
-        //Agrego boton menu
+  /*      //Agrego boton menu
         al_draw_scaled_bitmap(menu,
             0,0, al_get_bitmap_width(menu),al_get_bitmap_height(menu),
             COL2,HEIGHT_SYMS*2 + 50 ,WIDTH_SYMS,HEIGHT_SYMS,  // POSICION. tamano que quiero que se imprima la imagen
-            0); //rotacion
+            0); //rotacion*/
 
 	al_flip_display();
         
@@ -284,7 +381,7 @@ int main(void)
                     close_display = true;
                 if (evento.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP)
                 {
-                    if ((evento.mouse.x >= COL1) && (evento.mouse.x <= FINCOL1) )   //Estoy en la primer columna
+                    /*if ((evento.mouse.x >= COL1) && (evento.mouse.x <= FINCOL1) )   //Estoy en la primer columna
                     {   
                         //Boton play, debe volver al estado jugando, limpiando la cola de eventos anteriores
                         //Pero el estado de la matriz de juego sigue igual
@@ -309,27 +406,84 @@ int main(void)
                             #endif
                         }
                           
-                    }
+                    }*/
                     
-                    if ((evento.mouse.x >= COL2) && (evento.mouse.x <= FINCOL2) )   //Estoy en la segunda columna
+                    if ((evento.mouse.x >= COL2) && (evento.mouse.x <= FINCOL2_O) )   //Estoy en la segunda columna
                     {
-                        //Boton restart
-                        //Se debe limpiar la matriz de juego
-                        if ((evento.mouse.y >= HEIGHT_SYMS) && (evento.mouse.y <= HEIGHT_SYMS*2))
+                        //Boton epilepsia
+                        
+                        if ((evento.mouse.y >= (HEIGHT_SYMS_O*6 +10)) && (evento.mouse.y <= (HEIGHT_SYMS_O*6 +10)+ HEIGHT_SYMS_O))
                         {
-                           *pevento++ = RESTART; //Pongo en el arreglo que tocaron el boton play y corro el puntero
+                            if (epilepsia == true)
+                            {
+                            al_draw_scaled_bitmap(off,
+            0,0, al_get_bitmap_width(off),al_get_bitmap_height(off),
+            COL2,HEIGHT_SYMS_O*6 +10 ,WIDTH_SYMS_O,HEIGHT_SYMS_O,  // POSICION. tamano que quiero que se imprima la imagen
+            0); //rotacion*/
+                            al_flip_display();
+                            epilepsia = false;
+                            
+                            #if DEBUG
+                            printf("epilepsia off\n");
+                            #endif
+                            }
+                            else if (epilepsia == false)
+                            {
+                              al_draw_scaled_bitmap(on,
+            0,0, al_get_bitmap_width(on),al_get_bitmap_height(on),
+            COL2,HEIGHT_SYMS_O*6 +10 ,WIDTH_SYMS_O,HEIGHT_SYMS_O,  // POSICION. tamano que quiero que se imprima la imagen
+            0); //rotacion*/
+                            al_flip_display();  
+                            epilepsia = true;
+                            
+                            #if DEBUG
+                            printf("epilepsia on\n");
+                            #endif
+                            }
                            #if DEBUG
-                            printf("boton restart\n");
+                            printf("boton epilepsia\n");
                             #endif
                         }
-                        //Boton menu
+                        
+                        
+                    }
+                    if ((evento.mouse.x >= COL2) && (evento.mouse.x <= FINCOL2) )   //Estoy en la segunda columna
+                    {
+                    //Boton uno
                         //se cierra este menu y se debe abrir el primero. Se cambia al estado menu ppal
-                        if ((evento.mouse.y >= (HEIGHT_SYMS*2 + 50)) && (evento.mouse.y <= ((HEIGHT_SYMS*2 + 50) + HEIGHT_SYMS)))
+                        if ((evento.mouse.y >= (HEIGHT_SYMS*2 -20)) && (evento.mouse.y <= ((HEIGHT_SYMS*2 -20) + HEIGHT_SYMS)))
                         {
-                            *pevento++ = MENU;
-                            close_display = true;   //Se cierra el frontend
+                            dificultad = 1;
                             #if DEBUG
-                            printf("boton menu\n");
+                            printf("boton 1\n");
+                            #endif
+                        }
+                    }
+                    
+                    
+                    //Boton 2
+                    if ((evento.mouse.x >= FINCOL2 + 20) && (evento.mouse.x <= (FINCOL2 + 20) + WIDTH_SYMS) )   
+                    {
+                        if ((evento.mouse.y >= (HEIGHT_SYMS*2 -20)) && (evento.mouse.y <= (HEIGHT_SYMS*2 -20)+ HEIGHT_SYMS))
+                        {
+                            dificultad = 2;
+                            #if DEBUG
+                            printf("boton 2\n");
+                            #endif
+                        }
+                    }
+                    
+                    
+                    
+                    //Boton return
+                    if (WIDTH_SYMS_R)   
+                    {
+                        if (evento.mouse.y <=  HEIGHT_SYMS_R)
+                        {
+                            close_display = true;
+                            *(pevento++) = menu;    //debo pasar al estado menu, paso el evento
+                            #if DEBUG
+                            printf("boton quit\n");
                             #endif
                         }
                     }
@@ -345,17 +499,15 @@ int main(void)
         }
         
         al_destroy_bitmap(display_background);
-        al_destroy_bitmap(rules);
-        al_destroy_bitmap(play);
-        al_destroy_bitmap(quit);
-        al_destroy_bitmap(restart);
-        al_destroy_bitmap(max_score);
-        al_destroy_bitmap(tetris);
-        al_destroy_bitmap(settings);
-        al_destroy_bitmap(menu);
+        al_destroy_bitmap(off);
+        al_destroy_bitmap(on);
 	al_shutdown_image_addon();
         al_destroy_event_queue(event_queue);
         al_destroy_display(display);
+        al_destroy_bitmap(uno);
+        al_destroy_bitmap(dos);
+        al_destroy_bitmap(tres);
+        al_destroy_bitmap(restart);
         return 0;
 }
 
